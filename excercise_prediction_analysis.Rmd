@@ -54,11 +54,15 @@ Evaluating the Accuracy of the Random Forest Model
 ```{r, echo=TRUE, cache=TRUE}
 set.seed(323)
 rfFit<-train(classe ~ ., data=training, method="rf")
-plot(varImp(rfFit), main = "Variable Importance ")
 rfprediction<-predict(rfFit, testing)
 #Accuracy
 #Used rf as prediction model; 0.95 accuracy
 ```
+Variable Importance Graph
+```{r, echo=TRUE}
+plot(varImp(rfFit), main = "Variable Importance ")
+```
+
 
 ```{r, echo=TRUE, cache=TRUE}
 #Evaluating the Accuracy of the Boosting Model
