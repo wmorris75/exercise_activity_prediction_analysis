@@ -1,0 +1,124 @@
+---
+title: "Prediction Analysis For How Exercise is Done"
+author: "Wayne"
+date: "May 28, 2016"
+output: html_document
+NB: Please note that some models were commented out to reduce the number of computations that have to be performed. Uncomment to observe the output of these model.
+---
+
+##Summary
+The aim of the project is to predict the manner in which exercises were done based on 6 subjects(persons). The training set was split into training and test which was used as cross-validation. The model chosen for this project was the random forest model. The accuracy obtained using the selected model was about 95%.
+
+##Data Processing
+The data was processed for activities with accelerometer. 
+```{r, echo=FALSE}
+library(caret)
+library(ggplot2)
+library(MASS)
+library(lattice)
+library(ggplot2)
+library(randomForest)
+
+```
+An exploratory analysis of the data was done to identify the more significant features for the model. The process below outlined the steps that were taken to process and prepare the data for analysis.
+```{r, echo=FALSE}
+   training_data<-read.csv("pml-training.csv")
+   testing_data<-read.csv("pml-testing.csv")
+   
+   train_data<-training_data[(grep("accel|classe", names(training_data)))]
+ 
+```
+
+```{r, echo=FALSE}
+   names(train_data)
+   str(train_data) 
+```
+The features with NA were not considered as these did not show to have any influence on the outcome of the question at hand.
+```{r, echo=TRUE}
+#variables to be removed from data
+rm_names<-c("var_total_accel_belt", "var_accel_arm", "var_accel_dumbbell", "var_accel_forearm")
+new_train_data<-train_data[!names(train_data) %in% rm_names]
+str(new_train_data)
+```
+
+##Model Selection
+Various models were explored, namely, boosting, rpart, random forest, linear discriminant analysis and naive bayes, to determine the most suitable in terms of accuracy.
+```{r, echo=FALSE}
+set.seed(323)
+new_train_data$classe <-as.factor(new_train_data$classe)
+inTrain <- createDataPartition(new_train_data$classe, p=0.7, list=FALSE)
+training<-new_train_data[inTrain,]
+testing<-new_train_data[-inTrain,]
+```
+Evaluating the Accuracy of the Random Forest Model
+```{r, echo=TRUE, cache=TRUE}
+set.seed(323)
+rfFit<-train(classe ~ ., data=training, method="rf")
+plot(varImp(rfFit), main = "Variable Importance ")
+rfprediction<-predict(rfFit, testing)
+#Accuracy
+#Used rf as prediction model; 0.95 accuracy
+```
+
+```{r, echo=TRUE, cache=TRUE}
+#Evaluating the Accuracy of the Boosting Model
+#set.seed(323)
+#gbmfit<-train(classe ~ ., data=training, method="gbm")
+#gbmprediction<-predict(gbmfit, testing)
+#Accuracy
+#confusionMatrix(gbmprediction, testing$classe)   #0.80 accuracy
+```
+
+```{r, echo=TRUE, cache=TRUE}
+#Evaluating the Accuracy of the rpart model
+#set.seed(323)
+#rpartFit<-train(classe ~ ., data=training, method="rpart")
+#rPartprediction<-predict(rpartFit, testing)
+#Accuracy
+#confusionMatrix(rPartprediction, testing$classe)   #0.42  accuracy
+#Used rpart as prediction model; 0.42% accuracy
+```
+
+```{r, echo=TRUE, cache=TRUE}
+#Evaluating the accuracy of the linear discriminant model
+#set.seed(323)
+#ldaFit<-train(classe ~ ., data=training, method="lda")
+#ldaprediction<-predict(ldaFit, testing)
+#Accuracy
+#confusionMatrix(ldaprediction, testing$classe)   #0.  accuracy
+#Used lda as prediction model; 0.51% accuracy
+```
+
+```{r, echo=TRUE, cache=TRUE}
+#Evaluating the accuracy of the Naive Bayes model
+#set.seed(323)
+#nbFit<-train(classe ~ ., data=training, method="nb")
+#nbprediction<-predict(nbFit, testing)
+#Accuracy
+#confusionMatrix(nbprediction, testing$classe)   #0.  accuracy
+#Used nb as prediction model; 0.57% accuracy
+```
+
+##Results 
+Accuracy of Models:
+```{r, echo=TRUE}
+#Random Forest
+confusionMatrix(rfprediction, testing$classe)
+
+#Boosting
+#confusionMatrix(gbmprediction, testing$classe)$overall[1] 
+
+#RPart
+#confusionMatrix(rPartprediction, testing$classe)$overall[1]
+
+#Linear Discriminant Model
+#confusionMatrix(ldaprediction, testing$classe)$overall[1]
+
+#Naive Bayes
+#confusionMatrix(nbprediction, testing$classe)$overall[1]
+```
+
+##Conclusion:
+<p>
+The random forest model is the most accurate model and makes a prediction of 95% accuracy. However, in a case where scalability matters, the random forest model might not be a suitable model given the level of computations it needs to undertake which could result in low performance. The actual out of sample error rate, given its accuracy, is 5.1%.
+</p>
